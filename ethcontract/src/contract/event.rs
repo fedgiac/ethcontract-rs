@@ -278,6 +278,18 @@ impl<T: Transport, E: ParseLog> AllEventsBuilder<T, E> {
             .collect()
     }
 
+    /// Similar to [`Self::query()`], however it returns each parsing error
+    /// in the output vector instead of collapsing it to a single error.
+    pub async fn query_return_errors(
+        self,
+    ) -> Result<Vec<Result<Event<E>, ExecutionError>>, ExecutionError> {
+        let logs = self.filter.past_logs().await?;
+        Ok(logs
+            .into_iter()
+            .map(|log| Event::from_past_log(log, E::parse_log))
+            .collect())
+    }
+
     /// Returns a future that resolves into a collection of events matching the
     /// event builder's parameters. This method is similar to `query` with the
     /// notable difference that the logs are fetched in pages by querying
